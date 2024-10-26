@@ -30,10 +30,20 @@ jobs:
     - name: Publish Self-Contained
       run: dotnet publish --configuration Release --self-contained --runtime win-x64 -o ./publish/self-contained
 
-    - name: Upload Artifacts
+    - name: Clean up Self-Contained Artifact
+      run: |
+        cd ./publish/self-contained
+        rm -rf *.pdb *.xml *.config
+        mv QuickEdit.exe ./exe/
+
+    - name: Upload Framework-Dependent Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Discord-QuickEdit
-        path: |
-          ./publish/framework-dependent/**
-          ./publish/self-contained/**
+        name: Discord-QuickEdit-Framework-Dependent
+        path: './publish/framework-dependent/**'
+
+    - name: Upload Self-Contained Artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: Discord-QuickEdit-Self-Contained
+        path: './publish/self-contained/**'
