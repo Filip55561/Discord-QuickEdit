@@ -30,12 +30,6 @@ jobs:
     - name: Publish Self-Contained
       run: dotnet publish --configuration Release --self-contained --runtime win-x64 -o ./publish/self-contained
 
-    - name: Clean up Self-Contained Artifact
-      run: |
-        cd ./publish/self-contained
-        rm -rf *.pdb *.xml *.config
-        mv quickedit.exe ./exe/
-
     - name: Upload Framework-Dependent Artifact
       uses: actions/upload-artifact@v4
       with:
