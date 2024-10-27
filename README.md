@@ -27,12 +27,7 @@ Read [IMPORTANT](#important)
 
 ## Contributing
 
-Contributions are welcome!\
-If you've never contributed to a GitHub repo before, you can check out [this guide](https://docs.github.com/en/get-started/exploring-projects-on-github/contributing-to-a-project) I guess.
-
-I'm not specifying any guidelines, because I have no idea how to write or create good guidelines.
-
-If you have any questions, create an issue or something, and I'll try to respond.
+[CONTRIBUTING.md](CONTRIBUTING.MD)
 
 ## License
 
