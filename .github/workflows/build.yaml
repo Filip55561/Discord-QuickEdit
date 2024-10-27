@@ -22,9 +22,9 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration Debug -o ./publish/
+      run: dotnet publish --configuration Debug -r win-x64 -o ./publish/
 
-    - name: Upload Framework-Dependent Artifact
+    - name: Upload
       uses: actions/upload-artifact@v4
       with:
         name: Discord-QuickEdit
