@@ -22,22 +22,10 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration Release
-
-    - name: Publish Framework-Dependent
-      run: dotnet publish --configuration Release -o ./publish/framework-dependent
-
-    - name: Publish Self-Contained
-      run: dotnet publish --configuration Release --self-contained --runtime win-x64 -o ./publish/self-contained
+      run: dotnet build --configuration Debug
 
     - name: Upload Framework-Dependent Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: Discord-QuickEdit-Framework-Dependent
-        path: './publish/framework-dependent/**'
-
-    - name: Upload Self-Contained Artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: Discord-QuickEdit-Self-Contained
-        path: './publish/self-contained/**'
+        name: Discord-QuickEdit
+        path: './publish/**'
