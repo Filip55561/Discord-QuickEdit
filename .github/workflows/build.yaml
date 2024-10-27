@@ -22,7 +22,7 @@ jobs:
       run: dotnet restore
 
     - name: Build
-      run: dotnet build --configuration Debug
+      run: dotnet build --configuration Debug -o ./publish/
 
     - name: Upload Framework-Dependent Artifact
       uses: actions/upload-artifact@v4
