@@ -26,7 +26,7 @@ If you have any questions, create an issue or something, and I'll try to respond
    ```
 
 7. **Insert your Token** inside the quotes: `""`.
-8. **Rebuild the project** If u now rebuild the project, it should work without **crashing**!
+8. **Launch the Project** If u now launch the .exe file, it should work without **crashing**!
 
 ## Installing the Bot on Discord
 
