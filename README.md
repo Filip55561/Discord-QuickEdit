@@ -25,10 +25,6 @@ That's it for now lol, but more are planned (like the "jpegify" command)
 
 Read [IMPORTANT](#important)
 
-## Contributing
-
-[CONTRIBUTING.md](CONTRIBUTING.MD)
-
 ## License
 
 This project currently does NOT have a license. I am planning to add it in the future. (I kind of got stuck choosing one :/)
