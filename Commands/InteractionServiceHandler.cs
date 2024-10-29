@@ -8,11 +8,11 @@ namespace QuickEdit.Commands;
 internal sealed class InteractionServiceHandler(DiscordSocketClient client, InteractionService interactionService, InteractionServiceConfig interactionServiceConfig, IHostApplicationLifetime appLifetime) : IHostedService
 {
 	private readonly DiscordSocketClient _client = client;
-	private InteractionService _interactionService = interactionService;
+	private readonly InteractionService _interactionService = interactionService;
 	private readonly InteractionServiceConfig _interactionServiceConfig = interactionServiceConfig;
 	private readonly IHostApplicationLifetime _appLifetime = appLifetime;
 	private static readonly SemaphoreSlim _initSemaphore = new(1);
-	private static bool isReady = false;
+	private static bool isReady;
 
 	public Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -22,35 +22,27 @@ internal sealed class InteractionServiceHandler(DiscordSocketClient client, Inte
 
 	public Task StopAsync(CancellationToken cancellationToken)
 	{
-		_interactionService?.Dispose();
-		return Task.CompletedTask;
+		return Task.CompletedTask; // Clean-up handled by DI container
 	}
 
-	/// <summary>
-	/// Initialize the InteractionService
-	/// </summary>
 	private async Task InitAsync()
 	{
+		if (isReady) return;
+
 		await _initSemaphore.WaitAsync();
-
-		// Prevent re-initialization
-		if (isReady)
-			return;
-
 		try
 		{
-			_interactionService = new InteractionService(_client.Rest, _interactionServiceConfig);
-			await RegisterModulesAsync();
+			if (isReady) return; // Double-check within lock
 
-			// Can't simply get the result of the ExecuteCommandAsync, because of RunMode.Async
-			// So the event has to be used to handle the result
+			await RegisterModulesAsync();
 			_interactionService.SlashCommandExecuted += OnSlashCommandExecutedAsync;
+			_client.InteractionCreated += OnInteractionCreatedAsync;
 			isReady = true;
+			Log.Information("InteractionService initialized successfully.");
 		}
 		catch (Exception e)
 		{
-			Log.Fatal("Error initializing InteractionService: {e}", e);
-			Environment.ExitCode = 1; // TODO: Maybe implement different exit codes in the future
+			Log.Fatal("Error initializing InteractionService: {Error}", e);
 			_appLifetime.StopApplication();
 		}
 		finally
@@ -64,13 +56,6 @@ internal sealed class InteractionServiceHandler(DiscordSocketClient client, Inte
 	/// </summary>
 	private async Task RegisterModulesAsync()
 	{
-		// The service might not have been initialized yet
-		if (_interactionService == null)
-		{
-			Log.Error("Failed to register modules: InteractionService not initialized.");
-			throw new InvalidOperationException("InteractionService not initialized while trying to register commands");
-		}
-
 		try
 		{
 			var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -78,57 +63,42 @@ internal sealed class InteractionServiceHandler(DiscordSocketClient client, Inte
 			{
 				await _interactionService.AddModulesAsync(assembly, null);
 			}
-
 			await _interactionService.RegisterCommandsGloballyAsync();
-			_client!.InteractionCreated += OnInteractionCreatedAsync;
-			Log.Information("Modules registered successfully");
+			Log.Information("Modules registered successfully.");
 		}
 		catch (Exception e)
 		{
-			Log.Fatal("Error registering modules:\n{}", e);
+			Log.Fatal("Error registering modules: {Error}", e);
 			throw;
 		}
 	}
 
 	private async Task OnInteractionCreatedAsync(SocketInteraction interaction)
 	{
-		// The service might not have been initialized yet
-		if (_interactionService == null)
-		{
-			Log.Error("Error handling interaction: InteractionService not initialized.");
-			return;
-		}
-
 		try
 		{
-			var ctx = new SocketInteractionContext(_client, interaction);
-			await _interactionService.ExecuteCommandAsync(ctx, null);
-			// Result is handled in OnSlashCommandExecutedAsync, since the RunMode is RunMode.Async.
-			// See https://docs.discordnet.dev/guides/int_framework/post-execution.html for more info.
+			var context = new SocketInteractionContext(_client, interaction);
+			await _interactionService.ExecuteCommandAsync(context, null);
 		}
 		catch (Exception e)
 		{
-			Log.Error("Error handling interaction:\n{e}", e);
+			Log.Error("Error handling interaction: {Error}", e);
 
 			if (interaction.Type is InteractionType.ApplicationCommand)
 			{
 				await interaction.GetOriginalResponseAsync().ContinueWith(async msg => await msg.Result.DeleteAsync());
 			}
-
-			throw;
 		}
 	}
 
-	private static async Task OnSlashCommandExecutedAsync(SlashCommandInfo commandInfo, IInteractionContext interactionContext, IResult result)
+	private static async Task OnSlashCommandExecutedAsync(SlashCommandInfo commandInfo, IInteractionContext context, IResult result)
 	{
-		// Only trying to handle errors lol
-		if (result.IsSuccess)
-			return;
+		if (result.IsSuccess) return;
 
 		try
 		{
-			Log.Error("Error handling interaction: {Error}", result.Error); // TODO: Somehow get more information about the error
-			await interactionContext.Interaction.FollowupAsync("An error occurred while executing the command.", ephemeral: true);
+			Log.Error("Error executing {Command}: {ErrorReason}", commandInfo?.Name, result.ErrorReason);
+			await context.Interaction.FollowupAsync("An error occurred while executing the command.", ephemeral: true);
 		}
 		catch (Exception e)
 		{
