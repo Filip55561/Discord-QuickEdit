@@ -1,5 +1,11 @@
 # Discord QuickEdit
 
+> [!CAUTION]
+> This project is currently NOT licensed under ANY license.
+>
+> The LICENSE-ImageSharp file is the Apache-2.0 license for the ImageSharp library.
+> The project is currently waiting for the approval from one of the contributors to use the GNU GPL v3.0 license.
+
 QuickEdit is an open-source Discord bot written in C# using the [Discord.NET library](https://github.com/discord-net/Discord.Net). It is currently a work in progress and not yet ready for use.
 
 If you want to help develop this bot, and speed up it's release, check out [Contributing](#contributing)!
@@ -31,6 +37,10 @@ Read [IMPORTANT](#important)
 This project currently does NOT have a license. I am planning to add it in the future. (I kind of got stuck choosing one :/)
 
 If you know a bit about software licenses, and want to help, you can open an issue and help me choose one! :D
+
+### Used libraries
+
+- [ImageSharp](https://github.com/SixLabors/ImageSharp) - [Apache License, Version 2.0](LICENSE-ImageSharp)
 
 ## ToDo
 
